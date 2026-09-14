@@ -32,14 +32,6 @@
   <section class="input-card">
     <label for="tiktok-url">틱톡 영상 링크를 붙여넣으세요</label>
 
-    <div class="quality-row">
-      <label for="quality-select" class="quality-label">화질 선택</label>
-      <select id="quality-select">
-        <option value="hd" selected>HD (고화질)</option>
-        <option value="sd">SD (일반화질 · 용량 작음)</option>
-      </select>
-    </div>
-
     <div class="input-row">
       <input
         type="url"
@@ -49,6 +41,13 @@
       />
       <button id="fetch-btn">HD 무료 다운로드</button>
     </div>
+
+    <div id="quality-menu" class="quality-menu" hidden>
+      <p class="quality-menu-label">화질을 선택해주세요</p>
+      <button type="button" class="quality-option" data-quality="hd">HD 고화질로 다운로드</button>
+      <button type="button" class="quality-option" data-quality="sd">SD 일반화질로 다운로드 (용량 작음)</button>
+    </div>
+
     <p id="error-msg" class="error-msg" hidden></p>
   </section>
 
@@ -99,8 +98,9 @@
     <h2>사용 방법</h2>
     <ol>
       <li>틱톡 앱이나 웹사이트에서 다운로드하고 싶은 영상의 공유 링크를 복사합니다.</li>
-      <li>위 입력창에 링크를 붙여넣고, 원하는 화질(HD/SD)을 선택한 뒤 다운로드 버튼을 누릅니다.</li>
-      <li>워터마크 없는 다운로드 버튼이 바로 나타나며, 눌러서 mp4 파일로 저장할 수 있습니다.</li>
+      <li>위 입력창에 링크를 붙여넣고 "HD 무료 다운로드" 버튼을 누릅니다.</li>
+      <li>화질 선택 메뉴가 나타나면 원하는 화질(HD/SD)을 선택합니다.</li>
+      <li>워터마크 없는 다운로드 버튼이 나타나며, 눌러서 mp4 파일로 저장할 수 있습니다.</li>
     </ol>
   </section>
 
