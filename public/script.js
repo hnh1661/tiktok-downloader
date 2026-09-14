@@ -1,6 +1,11 @@
 const COUNTDOWN_SECONDS = 5; // 광고 대기 시간(초). 원하는 값으로 조절 가능
 const FETCH_BTN_DEFAULT_TEXT = "HD 무료 다운로드";
 
+// 구글 애드센스가 아직 승인되지 않아 실제 광고가 없는 동안에는 false로 두면
+// 광고 대기 없이 바로 다운로드 버튼이 활성화됩니다.
+// 나중에 애드센스가 승인되어 광고를 붙이면 true로 바꿔서 광고 대기 후 다운로드가 가능하도록 전환하세요.
+const AD_GATE_ENABLED = false;
+
 const urlInput = document.getElementById("tiktok-url");
 const fetchBtn = document.getElementById("fetch-btn");
 const errorMsg = document.getElementById("error-msg");
@@ -31,7 +36,7 @@ function clearError() {
 
 function resetUI() {
   resultCard.hidden = true;
-  adGate.hidden = false;
+  adGate.hidden = true;
   downloadBtn.hidden = true;
   urlInput.value = "";
   clearError();
@@ -80,8 +85,6 @@ function renderResult(data) {
   videoAuthor.textContent = data.author ? `@${data.author}` : "";
 
   resultCard.hidden = false;
-  adGate.hidden = false;
-  downloadBtn.hidden = true;
 
   const downloadUrl =
     "/api/proxy-download?url=" +
@@ -91,7 +94,14 @@ function renderResult(data) {
 
   downloadBtn.href = downloadUrl;
 
-  startCountdown();
+  if (AD_GATE_ENABLED) {
+    adGate.hidden = false;
+    downloadBtn.hidden = true;
+    startCountdown();
+  } else {
+    adGate.hidden = true;
+    downloadBtn.hidden = false;
+  }
 }
 
 function startCountdown() {
