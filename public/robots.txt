@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tiktok-downloader-x8na.onrender.com/sitemap.xml
