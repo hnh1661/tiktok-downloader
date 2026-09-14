@@ -2,10 +2,16 @@
  * 틱톡 워터마크 없는 다운로드 사이트 - 백엔드 서버
  *
  * 흐름:
- *  1) 사용자가 프론트엔드에서 틱톡 영상 URL을 입력해서 POST /api/download 로 요청
+ *  1) 사용자가 프론트엔드에서 틱톡 영상 URL과 원하는 화질(HD/SD)을 선택해서
+ *     POST /api/download 로 요청
  *  2) 서버가 TikWM(https://www.tikwm.com) 공개 API를 호출해서 워터마크 없는
  *     영상 주소를 받아온다 (많은 유사 사이트들이 쓰는 방식과 동일)
- *  3) 결과를 프론트엔드로 돌려주면, 프론트엔드가 광고 대기 후 다운로드 버튼을 노출한다
+ *  3) 결과를 프론트엔드로 돌려주면, 프론트엔드가 (필요시) 광고 대기 후 다운로드 버튼을 노출한다
+ *
+ * 화질 안내: TikWM은 영상마다 "일반화질(play)"과, 있는 경우에만 제공되는
+ * "고화질(hdplay)" 두 가지 워터마크 없는 버전을 줍니다. 특정 해상도(1080p, 720p 등)를
+ * 지정해서 요청할 수 있는 기능은 아니라서, 이 프로젝트에서는 HD/SD 두 단계로만
+ * 구분해서 제공합니다. 요청한 화질이 없으면 자동으로 있는 화질로 대체됩니다.
  *
  * 주의: TikWM은 제3자 무료 API라서 예고 없이 응답 형식이 바뀌거나
  * 막힐 수 있습니다. 운영 중 다운로드가 안 되면 이 부분(fetchFromTikwm)만
@@ -69,7 +75,8 @@ async function fetchFromTikwm(tiktokUrl) {
     title: d.title || "",
     author: d.author ? d.author.nickname || d.author.unique_id : "",
     cover: d.cover || d.origin_cover || "",
-    noWatermarkUrl: d.hdplay || d.play, // 워터마크 없는 영상 (고화질 우선)
+    playUrl: d.play || "",     // 워터마크 없는 일반(SD) 화질
+    hdplayUrl: d.hdplay || "", // 워터마크 없는 고화질(HD, 있는 경우에만 제공됨)
     watermarkUrl: d.wmplay || "",
     musicUrl: d.music || "",
     duration: d.duration || null,
@@ -77,18 +84,45 @@ async function fetchFromTikwm(tiktokUrl) {
 }
 
 app.post("/api/download", downloadLimiter, async (req, res) => {
-  const { url } = req.body || {};
+  const { url, quality } = req.body || {};
+  const requestedQuality = quality === "sd" ? "sd" : "hd"; // 기본값은 HD
 
   if (!isValidTiktokUrl(url)) {
     return res.status(400).json({ success: false, message: "올바른 틱톡 링크를 입력해주세요." });
   }
 
   try {
-    const data = await fetchFromTikwm(url);
-    if (!data.noWatermarkUrl) {
+    const info = await fetchFromTikwm(url);
+
+    // 요청한 화질을 우선 사용하고, 없으면 있는 쪽으로 자동 대체
+    let noWatermarkUrl;
+    let qualityUsed;
+    if (requestedQuality === "sd") {
+      noWatermarkUrl = info.playUrl || info.hdplayUrl;
+      qualityUsed = info.playUrl ? "sd" : "hd";
+    } else {
+      noWatermarkUrl = info.hdplayUrl || info.playUrl;
+      qualityUsed = info.hdplayUrl ? "hd" : "sd";
+    }
+
+    if (!noWatermarkUrl) {
       return res.status(502).json({ success: false, message: "다운로드 링크를 찾지 못했습니다. 링크를 다시 확인해주세요." });
     }
-    return res.json({ success: true, data });
+
+    return res.json({
+      success: true,
+      data: {
+        title: info.title,
+        author: info.author,
+        cover: info.cover,
+        noWatermarkUrl,
+        watermarkUrl: info.watermarkUrl,
+        musicUrl: info.musicUrl,
+        duration: info.duration,
+        requestedQuality,
+        qualityUsed,
+      },
+    });
   } catch (err) {
     console.error("다운로드 처리 오류:", err.message);
     return res.status(502).json({
