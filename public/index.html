@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>틱톡 워터마크 없이 다운로드</title>
+<meta name="description" content="틱톡 영상을 워터마크 없이 무료로 다운로드하세요." />
+
+<!--
+  ▼▼▼ 구글 애드센스 코드 위치 ▼▼▼
+  애드센스 승인을 받으면, 아래 자리에 구글이 발급해준 스크립트 태그를 붙여넣으세요.
+  예)
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXX"
+   crossorigin="anonymous"></script>
+-->
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <h1>🎵 틱톡 다운로드</h1>
+  <p class="subtitle">워터마크 없이, 무료로 다운로드하세요</p>
+</header>
+
+<main class="container">
+
+  <section class="input-card">
+    <label for="tiktok-url">틱톡 영상 링크를 붙여넣으세요</label>
+    <div class="input-row">
+      <input
+        type="url"
+        id="tiktok-url"
+        placeholder="https://www.tiktok.com/@아이디/video/1234567890"
+        autocomplete="off"
+      />
+      <button id="fetch-btn">가져오기</button>
+    </div>
+    <p id="error-msg" class="error-msg" hidden></p>
+  </section>
+
+  <!-- 결과 영역 -->
+  <section id="result-card" class="result-card" hidden>
+    <div class="video-preview">
+      <img id="video-cover" src="" alt="영상 미리보기" />
+      <div class="video-info">
+        <p id="video-title"></p>
+        <p id="video-author" class="video-author"></p>
+      </div>
+    </div>
+
+    <!-- 광고 대기 영역: 광고를 "보는 동안" 기다렸다가 다운로드 버튼이 열리는 구조 -->
+    <div id="ad-gate" class="ad-gate">
+      <p class="ad-gate-label">광고 확인 후 다운로드 버튼이 활성화됩니다</p>
+
+      <!--
+        ▼▼▼ 광고 게재 영역 ▼▼▼
+        여기에 애드센스 광고 단위(디스플레이 광고) 코드를 넣으세요.
+        예)
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+             data-ad-slot="XXXXXXXXXX"
+             data-ad-format="auto"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+      <div class="ad-slot" id="ad-slot">
+        <span>광고 영역</span>
+      </div>
+
+      <div class="countdown-wrap">
+        <div class="countdown-bar"><div id="countdown-fill" class="countdown-fill"></div></div>
+        <span id="countdown-text">5초 후 다운로드 가능</span>
+      </div>
+    </div>
+
+    <a id="download-btn" class="download-btn" hidden>⬇ 워터마크 없이 다운로드</a>
+    <button id="reset-btn" class="reset-btn">다른 영상 다운로드하기</button>
+  </section>
+
+  <section class="info-box">
+    <h2>이용 안내</h2>
+    <p>본 서비스는 개인적인 용도의 다운로드를 위해 제공됩니다. 다운로드한 영상의 저작권은 원저작자에게 있으며,
+    원작자의 동의 없이 재배포·상업적 이용 시 저작권 문제가 발생할 수 있습니다. 이용자는 관련 법규를 준수할 책임이 있습니다.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>© 2026 틱톡 다운로드. 본 사이트는 TikTok과 관련이 없는 비공식 서비스입니다.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
