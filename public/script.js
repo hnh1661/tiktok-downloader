@@ -1,4 +1,5 @@
 const COUNTDOWN_SECONDS = 5; // 광고 대기 시간(초). 원하는 값으로 조절 가능
+const FETCH_BTN_DEFAULT_TEXT = "HD 무료 다운로드";
 
 const urlInput = document.getElementById("tiktok-url");
 const fetchBtn = document.getElementById("fetch-btn");
@@ -69,7 +70,7 @@ async function handleFetch() {
     showError("서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   } finally {
     fetchBtn.disabled = false;
-    fetchBtn.textContent = "가져오기";
+    fetchBtn.textContent = FETCH_BTN_DEFAULT_TEXT;
   }
 }
 
