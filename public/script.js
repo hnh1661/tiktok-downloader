@@ -1,5 +1,4 @@
 const COUNTDOWN_SECONDS = 5; // 광고 대기 시간(초). 원하는 값으로 조절 가능
-const FETCH_BTN_DEFAULT_TEXT = "HD 무료 다운로드";
 
 // 구글 애드센스가 아직 승인되지 않아 실제 광고가 없는 동안에는 false로 두면
 // 광고 대기 없이 바로 다운로드 버튼이 활성화됩니다.
@@ -7,6 +6,7 @@ const FETCH_BTN_DEFAULT_TEXT = "HD 무료 다운로드";
 const AD_GATE_ENABLED = false;
 
 const urlInput = document.getElementById("tiktok-url");
+const qualitySelect = document.getElementById("quality-select");
 const fetchBtn = document.getElementById("fetch-btn");
 const errorMsg = document.getElementById("error-msg");
 
@@ -14,6 +14,7 @@ const resultCard = document.getElementById("result-card");
 const videoCover = document.getElementById("video-cover");
 const videoTitle = document.getElementById("video-title");
 const videoAuthor = document.getElementById("video-author");
+const qualityNote = document.getElementById("quality-note");
 
 const adGate = document.getElementById("ad-gate");
 const countdownFill = document.getElementById("countdown-fill");
@@ -23,6 +24,14 @@ const downloadBtn = document.getElementById("download-btn");
 const resetBtn = document.getElementById("reset-btn");
 
 let countdownTimer = null;
+
+function qualityButtonText(value) {
+  return value === "sd" ? "SD 화질로 다운로드" : "HD 무료 다운로드";
+}
+
+function updateFetchBtnText() {
+  fetchBtn.textContent = qualityButtonText(qualitySelect.value);
+}
 
 function showError(message) {
   errorMsg.textContent = message;
@@ -40,12 +49,17 @@ function resetUI() {
   downloadBtn.hidden = true;
   urlInput.value = "";
   clearError();
+  if (qualityNote) {
+    qualityNote.hidden = true;
+    qualityNote.textContent = "";
+  }
   if (countdownTimer) clearInterval(countdownTimer);
   countdownFill.style.width = "0%";
 }
 
 async function handleFetch() {
   const url = urlInput.value.trim();
+  const quality = qualitySelect.value;
   clearError();
 
   if (!url) {
@@ -54,13 +68,14 @@ async function handleFetch() {
   }
 
   fetchBtn.disabled = true;
+  qualitySelect.disabled = true;
   fetchBtn.textContent = "불러오는 중...";
 
   try {
     const res = await fetch("/api/download", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, quality }),
     });
     const json = await res.json();
 
@@ -75,7 +90,8 @@ async function handleFetch() {
     showError("서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   } finally {
     fetchBtn.disabled = false;
-    fetchBtn.textContent = FETCH_BTN_DEFAULT_TEXT;
+    qualitySelect.disabled = false;
+    updateFetchBtnText();
   }
 }
 
@@ -85,6 +101,16 @@ function renderResult(data) {
   videoAuthor.textContent = data.author ? `@${data.author}` : "";
 
   resultCard.hidden = false;
+
+  if (qualityNote) {
+    if (data.requestedQuality === "hd" && data.qualityUsed === "sd") {
+      qualityNote.hidden = false;
+      qualityNote.textContent = "이 영상은 HD 고화질을 지원하지 않아 일반화질(SD)로 제공됩니다.";
+    } else {
+      qualityNote.hidden = true;
+      qualityNote.textContent = "";
+    }
+  }
 
   const downloadUrl =
     "/api/proxy-download?url=" +
@@ -125,6 +151,9 @@ function startCountdown() {
     }
   }, 1000);
 }
+
+qualitySelect.addEventListener("change", updateFetchBtnText);
+updateFetchBtnText();
 
 fetchBtn.addEventListener("click", handleFetch);
 urlInput.addEventListener("keydown", (e) => {
