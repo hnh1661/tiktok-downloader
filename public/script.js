@@ -5,10 +5,16 @@ const COUNTDOWN_SECONDS = 5; // 광고 대기 시간(초). 원하는 값으로 �
 // 나중에 애드센스가 승인되어 광고를 붙이면 true로 바꿔서 광고 대기 후 다운로드가 가능하도록 전환하세요.
 const AD_GATE_ENABLED = false;
 
+const FETCH_BTN_DEFAULT_TEXT = "HD 무료 다운로드";
+
 const urlInput = document.getElementById("tiktok-url");
-const qualitySelect = document.getElementById("quality-select");
 const fetchBtn = document.getElementById("fetch-btn");
 const errorMsg = document.getElementById("error-msg");
+
+const qualityMenu = document.getElementById("quality-menu");
+const qualityOptions = qualityMenu
+  ? Array.from(qualityMenu.querySelectorAll(".quality-option"))
+  : [];
 
 const resultCard = document.getElementById("result-card");
 const videoCover = document.getElementById("video-cover");
@@ -25,14 +31,6 @@ const resetBtn = document.getElementById("reset-btn");
 
 let countdownTimer = null;
 
-function qualityButtonText(value) {
-  return value === "sd" ? "SD 화질로 다운로드" : "HD 무료 다운로드";
-}
-
-function updateFetchBtnText() {
-  fetchBtn.textContent = qualityButtonText(qualitySelect.value);
-}
-
 function showError(message) {
   errorMsg.textContent = message;
   errorMsg.hidden = false;
@@ -43,24 +41,52 @@ function clearError() {
   errorMsg.textContent = "";
 }
 
+function openQualityMenu() {
+  const url = urlInput.value.trim();
+  clearError();
+
+  if (!url) {
+    showError("틱톡 링크를 입력해주세요.");
+    closeQualityMenu();
+    return;
+  }
+
+  if (qualityMenu) qualityMenu.hidden = false;
+}
+
+function closeQualityMenu() {
+  if (qualityMenu) qualityMenu.hidden = true;
+}
+
+function toggleQualityMenu() {
+  if (!qualityMenu) return;
+  if (qualityMenu.hidden) {
+    openQualityMenu();
+  } else {
+    closeQualityMenu();
+  }
+}
+
 function resetUI() {
   resultCard.hidden = true;
   adGate.hidden = true;
   downloadBtn.hidden = true;
   urlInput.value = "";
   clearError();
+  closeQualityMenu();
   if (qualityNote) {
     qualityNote.hidden = true;
     qualityNote.textContent = "";
   }
   if (countdownTimer) clearInterval(countdownTimer);
   countdownFill.style.width = "0%";
+  fetchBtn.textContent = FETCH_BTN_DEFAULT_TEXT;
 }
 
-async function handleFetch() {
+async function handleFetch(quality) {
   const url = urlInput.value.trim();
-  const quality = qualitySelect.value;
   clearError();
+  closeQualityMenu();
 
   if (!url) {
     showError("틱톡 링크를 입력해주세요.");
@@ -68,7 +94,6 @@ async function handleFetch() {
   }
 
   fetchBtn.disabled = true;
-  qualitySelect.disabled = true;
   fetchBtn.textContent = "불러오는 중...";
 
   try {
@@ -90,8 +115,7 @@ async function handleFetch() {
     showError("서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   } finally {
     fetchBtn.disabled = false;
-    qualitySelect.disabled = false;
-    updateFetchBtnText();
+    fetchBtn.textContent = FETCH_BTN_DEFAULT_TEXT;
   }
 }
 
@@ -152,11 +176,21 @@ function startCountdown() {
   }, 1000);
 }
 
-qualitySelect.addEventListener("change", updateFetchBtnText);
-updateFetchBtnText();
-
-fetchBtn.addEventListener("click", handleFetch);
+fetchBtn.addEventListener("click", toggleQualityMenu);
 urlInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") handleFetch();
+  if (e.key === "Enter") openQualityMenu();
 });
+
+qualityOptions.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    handleFetch(btn.dataset.quality);
+  });
+});
+
+document.addEventListener("click", (e) => {
+  if (!qualityMenu || qualityMenu.hidden) return;
+  if (qualityMenu.contains(e.target) || e.target === fetchBtn) return;
+  closeQualityMenu();
+});
+
 resetBtn.addEventListener("click", resetUI);
